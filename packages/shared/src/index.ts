@@ -7,11 +7,12 @@ export interface LiquidationSignal {
   updatedAt: number;
 }
 
-export interface MarketTick {
+export type MarketTick = {
   symbol: string;
   timestamp: number;
   fundingRate: number;
   openInterest: number;
   bidDepth2pct: number;
   askDepth2pct: number;
-}
+};
+export * from "./schemas.js";

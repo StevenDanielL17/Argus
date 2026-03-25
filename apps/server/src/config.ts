@@ -20,8 +20,11 @@ export const config = {
   builderCode: process.env.BUILDER_CODE ?? (env === "development" ? "ARGUS_BUILDER_001" : required("BUILDER_CODE")),
   pacificaWsUrl:
     process.env.PACIFICA_WS_URL ??
-    (env === "development" ? "wss://app.pacifica.fi/ws" : required("PACIFICA_WS_URL")),
+    (env === "development" ? "wss://ws.pacifica.fi/ws" : required("PACIFICA_WS_URL")),
   pacificaRestUrl:
     process.env.PACIFICA_REST_URL ??
-    (env === "development" ? "https://app.pacifica.fi/api" : required("PACIFICA_REST_URL"))
+    (env === "development" ? "https://api.pacifica.fi/api/v1" : required("PACIFICA_REST_URL")),
+  symbols: (process.env.PACIFICA_SYMBOLS ?? "SOL,BTC").split(","),
+  depthWindowPct: Number(process.env.DEPTH_WINDOW_PCT ?? 0.02),
+  updateIntervalMs: Number(process.env.UPDATE_INTERVAL_MS ?? 1000)
 };

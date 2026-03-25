@@ -4,7 +4,7 @@ import websocket from "@fastify/websocket";
 import { config } from "./config.js";
 import { registerHealthRoute } from "./routes/health.js";
 import { registerWsRoute } from "./routes/ws.js";
-import { startDevMockFeed } from "./devMockFeed.js";
+import { startPacificaFeeds } from "./ws/pacificaFeeds.js";
 
 const app = Fastify({ logger: true });
 
@@ -14,7 +14,11 @@ await app.register(websocket);
 await registerHealthRoute(app);
 await registerWsRoute(app);
 
-const mockTimer = config.env !== "production" ? startDevMockFeed() : null;
+const cleanupFeed = startPacificaFeeds(config.pacificaWsUrl, {
+  symbols: config.symbols,
+  depthWindowPct: config.depthWindowPct,
+  updateIntervalMs: config.updateIntervalMs
+});
 
 try {
   await app.listen({ port: config.port, host: "0.0.0.0" });
@@ -25,7 +29,7 @@ try {
 }
 
 process.on("SIGINT", async () => {
-  if (mockTimer) clearInterval(mockTimer);
+  if (cleanupFeed) cleanupFeed();
   await app.close();
   process.exit(0);
 });
