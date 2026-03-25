@@ -11,6 +11,13 @@ function band(score: number): SignalState["band"] {
   return "green";
 }
 
+function severity(score: number): SignalState["severity"] {
+  if (score >= 80) return "critical";
+  if (score >= 60) return "high";
+  if (score >= 30) return "medium";
+  return "low";
+}
+
 export function computeLiquidationRiskScore(
   tick: MarketTick,
   oi5mAgo: number,
@@ -28,6 +35,7 @@ export function computeLiquidationRiskScore(
   return {
     score: roundedScore,
     band: band(roundedScore),
+    severity: severity(roundedScore),
     reason: `FRP=${frp.toFixed(1)} OIV=${oiv.toFixed(1)} OTS=${ots.toFixed(1)}`,
     updatedAt: tick.timestamp
   };

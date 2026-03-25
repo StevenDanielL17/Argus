@@ -26,5 +26,10 @@ export const config = {
     (env === "development" ? "https://api.pacifica.fi/api/v1" : required("PACIFICA_REST_URL")),
   symbols: (process.env.PACIFICA_SYMBOLS ?? "SOL,BTC").split(","),
   depthWindowPct: Number(process.env.DEPTH_WINDOW_PCT ?? 0.02),
-  updateIntervalMs: Number(process.env.UPDATE_INTERVAL_MS ?? 1000)
+  updateIntervalMs: Number(process.env.UPDATE_INTERVAL_MS ?? 1000),
+  // Signal thresholds
+  whaleThreshold: Number(process.env.WHALE_THRESHOLD ?? 50000),
+  fundingAnomalyThreshold: Number(process.env.FUNDING_ANOMALY_THRESHOLD ?? 0.0005),
+  imbalanceRatioThreshold: Number(process.env.IMBALANCE_RATIO_THRESHOLD ?? 3),
+  whaleCooldownMs: Number(process.env.WHALE_COOLDOWN_MS ?? 15000),
 };

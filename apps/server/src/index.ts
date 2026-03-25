@@ -4,6 +4,7 @@ import websocket from "@fastify/websocket";
 import { config } from "./config.js";
 import { registerHealthRoute } from "./routes/health.js";
 import { registerWsRoute } from "./routes/ws.js";
+import { registerTestSignalRoute } from "./routes/test-signal.js";
 import { startPacificaFeeds } from "./ws/pacificaFeeds.js";
 
 const app = Fastify({ logger: true });
@@ -13,6 +14,7 @@ await app.register(websocket);
 
 await registerHealthRoute(app);
 await registerWsRoute(app);
+await registerTestSignalRoute(app);
 
 const cleanupFeed = startPacificaFeeds(config.pacificaWsUrl, {
   symbols: config.symbols,

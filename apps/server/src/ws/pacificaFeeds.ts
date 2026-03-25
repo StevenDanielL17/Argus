@@ -2,6 +2,10 @@ import { PacificaConnectionManager } from "./pacificaConnectionManager.js";
 import { OrderbookMessageSchema, type MarketTick, type OrderbookMessage } from "@argus/shared";
 import { broadcast } from "./clientHub.js";
 import { computeLiquidationRiskScore } from "../signals/liquidationScore.js";
+import { config } from "../config.js";
+import { detectWhale } from "../signals/whaleDetector.js";
+import { detectFundingAnomaly } from "../signals/fundingAnomaly.js";
+import { detectImbalance } from "../signals/orderbookImbalance.js";
 
 interface TradeMessage {
   channel: "trade";
@@ -16,6 +20,18 @@ interface TradeMessage {
 
 let simulatedOpenInterest = 1_500_000;
 let baselineDepth = 120_000;
+let latestFundingRate = 0;
+
+async function fetchFundingRate(symbol: string) {
+  try {
+    const res = await fetch(`${config.pacificaRestUrl}/market/funding_rate?symbol=${symbol}`);
+    const data = await res.json();
+    latestFundingRate = parseFloat(data.rate) || 0;
+    console.log(`[PacificaFeeds] Fetched funding rate for ${symbol}: ${latestFundingRate}`);
+  } catch (e: any) {
+    console.warn("[PacificaFeeds] Failed to fetch funding rate:", e?.message ?? e);
+  }
+}
 
 export interface PacificaFeedOptions {
   symbols: string[];
@@ -53,18 +69,55 @@ export function startPacificaFeeds(url: string, options: PacificaFeedOptions) {
   });
 
   const staleCheckInterval = setInterval(() => {
-    if (Date.now() - lastMessageTime > 3000) {
-      console.warn("[PacificaFeeds] Stale feed detected (>3s without message). Resyncing...");
+    if (Date.now() - lastMessageTime > 10_000) {
+      console.warn("[PacificaFeeds] Stale feed detected (>10s without message). Resyncing...");
       manager.disconnect();
       manager.connect();
-      lastMessageTime = Date.now(); // reset to avoid immediate loop
+      lastMessageTime = Date.now();
     }
-  }, 1000);
+  }, 5000);
 
   manager.connect();
 
+  // Start polling funding rate from REST API
+  const primarySymbol = options.symbols[0] ?? "SOL";
+  fetchFundingRate(primarySymbol);
+  const fundingRateInterval = setInterval(() => fetchFundingRate(primarySymbol), 60_000);
+
+  // Mock trade generator — ensures trade feed has data for demo
+  // (Pacifica may not emit trade events via WebSocket)
+  let lastMockMidPrice = 93; // rough SOL starting price
+  const mockTradeInterval = setInterval(() => {
+    // Use latest mid price from orderbook if available
+    lastMockMidPrice = lastMockMidPrice + (Math.random() - 0.5) * 0.5;
+    const price = lastMockMidPrice;
+    const amount = Math.random() * (Math.random() > 0.92 ? 800 : 50); // occasional large
+    const value = price * amount;
+    const side = Math.random() > 0.5 ? "BUY" as const : "SELL" as const;
+    const isWhale = value > config.whaleThreshold;
+
+    const trade = {
+      symbol: primarySymbol,
+      timestamp: Date.now(),
+      price: Math.round(price * 100) / 100,
+      amount: Math.round(amount * 100) / 100,
+      value: Math.round(value * 100) / 100,
+      side,
+      isWhale,
+    };
+
+    broadcast({ type: "trade", trade });
+
+    // Also run whale detection
+    if (isWhale) {
+      detectWhale(trade);
+    }
+  }, 3000 + Math.random() * 5000); // every 3-8s
+
   return () => {
     clearInterval(staleCheckInterval);
+    clearInterval(fundingRateInterval);
+    clearInterval(mockTradeInterval);
     manager.disconnect();
   };
 }
@@ -115,7 +168,7 @@ function processOrderbookMessage(msg: OrderbookMessage, depthWindowPct: number) 
   const tick: MarketTick = {
     symbol: s,
     timestamp: t,
-    fundingRate: (Math.random() - 0.25) * 0.012, // mock funding rate
+    fundingRate: latestFundingRate,
     openInterest: simulatedOpenInterest,
     bidDepth2pct,
     askDepth2pct,
@@ -123,6 +176,10 @@ function processOrderbookMessage(msg: OrderbookMessage, depthWindowPct: number) 
 
   const signal = computeLiquidationRiskScore(tick, simulatedOpenInterest * 0.97, baselineDepth);
   broadcast({ type: "market_tick", tick, signal });
+
+  // Run signal detectors
+  detectFundingAnomaly(latestFundingRate, s);
+  detectImbalance(bidDepth2pct, askDepth2pct, s);
 }
 
 function processTrade(msg: TradeMessage) {
@@ -130,18 +187,20 @@ function processTrade(msg: TradeMessage) {
   const price = parseFloat(p);
   const amount = parseFloat(a);
   const value = price * amount;
-  const isWhale = value > 50000; // $50K threshold
+  const isWhale = value > config.whaleThreshold;
 
-  broadcast({
-    type: "trade",
-    trade: {
-      symbol: s,
-      timestamp: t,
-      price,
-      amount,
-      value,
-      side: side === "bid" ? "BUY" : "SELL",
-      isWhale,
-    },
-  });
+  const trade = {
+    symbol: s,
+    timestamp: t,
+    price,
+    amount,
+    value,
+    side: (side === "bid" ? "BUY" : "SELL") as "BUY" | "SELL",
+    isWhale,
+  };
+
+  broadcast({ type: "trade", trade });
+
+  // Run whale detector (handles its own threshold + cooldown)
+  detectWhale(trade);
 }

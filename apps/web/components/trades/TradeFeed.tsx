@@ -1,28 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
 import { useTradeFeedStore } from "../../stores/tradeFeedStore";
 
 export function TradeFeed() {
-  const { trades, addTrade } = useTradeFeedStore();
-
-  useEffect(() => {
-    const wsUrl = process.env.NEXT_PUBLIC_BACKEND_WS ?? "ws://localhost:8080/ws/client";
-    const ws = new WebSocket(wsUrl);
-
-    ws.onmessage = (event) => {
-      try {
-        const parsed = JSON.parse(event.data);
-        if (parsed.type === "trade") {
-          addTrade(parsed.trade);
-        }
-      } catch (e) {
-        console.error("Failed to parse trade:", e);
-      }
-    };
-
-    return () => ws.close();
-  }, [addTrade]);
+  const trades = useTradeFeedStore((s) => s.trades);
 
   return (
     <div style={{ border: "1px solid #2e3a4a", borderRadius: 8 }}>

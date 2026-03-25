@@ -12,6 +12,7 @@ export interface MarketTick {
 export interface SignalState {
   score: number;
   band: "green" | "yellow" | "orange" | "red";
+  severity: "low" | "medium" | "high" | "critical";
   reason: string;
   updatedAt: number;
 }

@@ -15,11 +15,17 @@ export function OrderbookHeatmap() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const maxLevels = 20;
     const barHeight = canvas.height / (maxLevels * 2);
+
+    const topBids = bids.slice(0, maxLevels);
+    const topAsks = asks.slice(0, maxLevels);
+
+    // Compute max size across both sides for normalization
+    const allSizes = [...topBids, ...topAsks].map((l) => l.size);
+    const maxSize = Math.max(...allSizes, 0.001); // avoid div by 0
 
     // Color scales
     const bidColor = scaleLinear<string, string>()
@@ -30,30 +36,45 @@ export function OrderbookHeatmap() {
       .domain([0, maxLevels])
       .range(["#7f1d1d", "#ef4444"]);
 
-    // Draw bids (green, bottom-up)
-    bids.slice(0, maxLevels).forEach((level, i) => {
-      const width = Math.min(level.size * 100, canvas.width);
-      ctx.fillStyle = bidColor(i);
-      ctx.fillRect(0, canvas.height - (i + 1) * barHeight, width, barHeight - 1);
-    });
-
-    // Draw asks (red, top-down)
-    asks.slice(0, maxLevels).forEach((level, i) => {
-      const width = Math.min(level.size * 100, canvas.width);
+    // Draw asks (red, top half — price ascending from mid)
+    topAsks.forEach((level, i) => {
+      const width = (level.size / maxSize) * canvas.width;
       ctx.fillStyle = askColor(i);
       ctx.fillRect(0, i * barHeight, width, barHeight - 1);
+
+      // Price label
+      ctx.fillStyle = "#64748b";
+      ctx.font = "10px monospace";
+      ctx.fillText(`$${level.price.toLocaleString()}`, width + 4, i * barHeight + barHeight - 3);
     });
 
     // Draw mid price line
+    const midY = maxLevels * barHeight;
+    ctx.strokeStyle = "#fbbf24";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, midY);
+    ctx.lineTo(canvas.width, midY);
+    ctx.stroke();
+
     if (midPrice) {
-      const y = maxLevels * barHeight;
-      ctx.strokeStyle = "#fbbf24";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "bold 11px monospace";
+      ctx.fillText(`MID $${midPrice.toLocaleString()}`, 4, midY - 4);
     }
+
+    // Draw bids (green, bottom half — price descending from mid)
+    topBids.forEach((level, i) => {
+      const width = (level.size / maxSize) * canvas.width;
+      const y = midY + i * barHeight + 1; // +1 to offset from the midline
+      ctx.fillStyle = bidColor(i);
+      ctx.fillRect(0, y, width, barHeight - 1);
+
+      // Price label
+      ctx.fillStyle = "#64748b";
+      ctx.font = "10px monospace";
+      ctx.fillText(`$${level.price.toLocaleString()}`, width + 4, y + barHeight - 3);
+    });
   }, [bids, asks, midPrice]);
 
   return (
@@ -65,7 +86,7 @@ export function OrderbookHeatmap() {
         ref={canvasRef}
         width={600}
         height={400}
-        style={{ display: "block", width: "100%", height: "auto" }}
+        style={{ display: "block", width: "100%", height: "auto", background: "#0f1218" }}
       />
     </div>
   );

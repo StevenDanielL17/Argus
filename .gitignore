@@ -1,20 +1,31 @@
-docs/
+# Dependencies
 node_modules/
 .pnpm-store/
+
+# Build outputs
 .next/
 .turbo/
 .vercel/
 dist/
 coverage/
-docs/
+logs/
+
+# Environment files
 .env
-.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 !.env.example
+
+# Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Security - Never commit secrets
 *.pem
 *.key
 *.p12
@@ -22,10 +33,21 @@ pnpm-debug.log*
 *.seed
 *.pid
 *.pid.lock
+
+# OS files
 .DS_Store
 Thumbs.db
 
-# Ignore markdown files in root directory except readme
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation (local notes, not for repo)
+docs/
+
+# Keep root README only
 /*.md
 !/README.md
 !/readme.md

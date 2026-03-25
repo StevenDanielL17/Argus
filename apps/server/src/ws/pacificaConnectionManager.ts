@@ -10,8 +10,10 @@ export class PacificaConnectionManager {
   private callbacks: SubscriptionCallback[] = [];
   
   private reconnectInterval = 500;
-  private maxReconnectInterval = 3000;
+  private maxReconnectInterval = 5000;
   private isIntentionalClose = false;
+  private isConnecting = false;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(url: string, symbols: string[]) {
     this.url = url;
@@ -19,42 +21,72 @@ export class PacificaConnectionManager {
   }
 
   public connect() {
+    // Prevent overlapping connect() calls
+    if (this.isConnecting) return;
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) return;
+
     this.isIntentionalClose = false;
+    this.isConnecting = true;
+
+    // Clean up any existing connection
+    if (this.ws) {
+      try { this.ws.removeAllListeners(); this.ws.close(); } catch {}
+      this.ws = null;
+    }
+
     this.ws = new WebSocket(this.url);
 
     this.ws.on("open", () => {
       console.log(`[PacificaConnectionManager] Connected to ${this.url}`);
-      this.reconnectInterval = 500; // Reset
+      this.isConnecting = false;
+      this.reconnectInterval = 500; // Reset backoff
       this.subscribe();
       this.subscribeTrades();
     });
 
     this.ws.on("message", (data: WebSocket.RawData) => {
-      // Notify all registered callbacks
       for (const cb of this.callbacks) {
         cb(data as Buffer | string);
       }
     });
 
     this.ws.on("close", () => {
+      this.isConnecting = false;
       if (!this.isIntentionalClose) {
-        console.warn(`[PacificaConnectionManager] Disconnected. Reconnecting in ${this.reconnectInterval}ms...`);
-        setTimeout(() => this.connect(), this.reconnectInterval);
-        this.reconnectInterval = Math.min(this.maxReconnectInterval, this.reconnectInterval * 1.5);
+        this.scheduleReconnect();
       }
     });
 
     this.ws.on("error", (err: Error) => {
-      console.error(`[PacificaConnectionManager] Error:`, err);
+      this.isConnecting = false;
+      console.error(`[PacificaConnectionManager] Error:`, err.message);
     });
+  }
+
+  private scheduleReconnect() {
+    // Clear any existing reconnect timer
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+    }
+    console.warn(`[PacificaConnectionManager] Reconnecting in ${Math.round(this.reconnectInterval)}ms...`);
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.connect();
+    }, this.reconnectInterval);
+    this.reconnectInterval = Math.min(this.maxReconnectInterval, this.reconnectInterval * 1.5);
   }
 
   public disconnect() {
     this.isIntentionalClose = true;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     if (this.ws) {
-      this.ws.close();
+      try { this.ws.removeAllListeners(); this.ws.close(); } catch {}
       this.ws = null;
     }
+    this.isConnecting = false;
   }
 
   public onMessage(cb: SubscriptionCallback) {
@@ -78,17 +110,21 @@ export class PacificaConnectionManager {
   }
 
   private subscribeTrades() {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    try {
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
-    for (const symbol of this.symbols) {
-      this.ws.send(JSON.stringify({
-        method: "subscribe",
-        params: {
-          source: "trade",
-          symbol,
-        }
-      }));
-      console.log(`[PacificaConnectionManager] Subscribed to trades for ${symbol}`);
+      for (const symbol of this.symbols) {
+        this.ws.send(JSON.stringify({
+          method: "subscribe",
+          params: {
+            source: "trade",
+            symbol,
+          }
+        }));
+        console.log(`[PacificaConnectionManager] Subscribed to trades for ${symbol}`);
+      }
+    } catch (e: any) {
+      console.warn("[PacificaConnectionManager] Trade subscription failed:", e?.message ?? e);
     }
   }
 }
