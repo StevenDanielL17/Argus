@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ARGUS | Market Intelligence Terminal</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&amp;family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00daf3",
+                        "primary-fixed": "#9cf0ff",
+                        "primary-fixed-dim": "#00daf3",
+                        "on-primary": "#00363d",
+                        "on-primary-fixed": "#001f24",
+                        "on-primary-fixed-variant": "#004f58",
+                        "primary-container": "#007e8c",
+                        "on-primary-container": "#e9fbff",
+                        "tertiary": "#00e639",
+                        "tertiary-fixed": "#72ff70",
+                        "tertiary-fixed-dim": "#00e639",
+                        "on-tertiary": "#003907",
+                        "on-tertiary-fixed": "#002203",
+                        "on-tertiary-fixed-variant": "#00530e",
+                        "tertiary-container": "#00841c",
+                        "on-tertiary-container": "#e4ffdb",
+                        "secondary": "#c8c6c6",
+                        "secondary-fixed": "#e4e2e1",
+                        "secondary-fixed-dim": "#c8c6c6",
+                        "on-secondary": "#303030",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "on-secondary-fixed-variant": "#474747",
+                        "secondary-container": "#474747",
+                        "on-secondary-container": "#b6b5b4",
+                        "surface": "#131313",
+                        "surface-dim": "#131313",
+                        "surface-bright": "#3a3939",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-container-low": "#1c1b1b",
+                        "surface-container": "#201f1f",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-highest": "#353534",
+                        "surface-variant": "#353534",
+                        "on-surface": "#e5e2e1",
+                        "on-surface-variant": "#c2c6d8",
+                        "background": "#131313",
+                        "on-background": "#e5e2e1",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "outline": "#8c90a1",
+                        "outline-variant": "#424656",
+                        "inverse-surface": "#e5e2e1",
+                        "inverse-on-surface": "#313030",
+                        "inverse-primary": "#006875",
+                        "surface-tint": "#00daf3",
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #131313; }
+        ::-webkit-scrollbar-thumb { background: #424656; }
+        body { font-family: 'Inter', sans-serif; background-color: #131313; color: #e5e2e1; }
+        .font-headline { font-family: 'Space Grotesk', sans-serif; }
+        .gradient-primary { background: linear-gradient(135deg, #00daf3 0%, #007e8c 100%); }
+        .glow-primary { box-shadow: 0px 0px 10px 0px rgba(0, 218, 243, 0.2); }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- TopNavBar -->
+<nav class="flex justify-between items-center w-full px-6 py-3 bg-[#131313] border-b border-[#424656]/15 sticky top-0 z-50">
+    <div class="flex items-center gap-8">
+        <span class="text-xl font-black text-[#00daf3] tracking-tighter font-headline">ARGUS</span>
+        <span class="text-xs font-mono text-outline tracking-wider">MARKET INTELLIGENCE TERMINAL</span>
+        <div class="hidden md:flex items-center gap-4 ml-8">
+            <span class="flex items-center gap-1 text-[10px] font-mono text-tertiary">
+                <span class="w-2 h-2 bg-tertiary rounded-full animate-pulse"></span>
+                LIVE
+            </span>
+        </div>
+    </div>
+    <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2 text-[10px] font-mono text-outline">
+            <span class="material-symbols-outlined text-xs">sensors</span>
+            <span id="connection-status">CONNECTED</span>
+        </div>
+        <div class="flex items-center gap-2 text-[10px] font-mono text-outline">
+            <span class="material-symbols-outlined text-xs">speed</span>
+            <span id="latency">-- MS</span>
+        </div>
+        <div class="text-[10px] font-mono text-outline" id="clock">--:--:-- UTC</div>
+    </div>
+</nav>
+
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-[61px] h-[calc(100vh-61px)] flex flex-col items-center py-6 z-40 bg-[#1c1b1b] border-r border-[#424656]/15 w-[88px]">
+    <div class="flex flex-col w-full">
+        <a class="flex flex-col items-center justify-center border-l-2 border-[#00daf3] bg-[#353534] text-[#00daf3] w-full py-4 transition-all duration-200 ease-in-out" href="#">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="font-['Inter'] text-[9px] font-medium uppercase tracking-widest mt-1">Dashboard</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-[#c2c6d8] w-full py-4 opacity-70 hover:bg-[#2a2a2a] hover:opacity-100 transition-all duration-200 ease-in-out" href="#">
+            <span class="material-symbols-outlined">show_chart</span>
+            <span class="font-['Inter'] text-[9px] font-medium uppercase tracking-widest mt-1">Signals</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-[#c2c6d8] w-full py-4 opacity-70 hover:bg-[#2a2a2a] hover:opacity-100 transition-all duration-200 ease-in-out" href="#">
+            <span class="material-symbols-outlined">receipt_long</span>
+            <span class="font-['Inter'] text-[9px] font-medium uppercase tracking-widest mt-1">Trades</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-[#c2c6d8] w-full py-4 opacity-70 hover:bg-[#2a2a2a] hover:opacity-100 transition-all duration-200 ease-in-out" href="#">
+            <span class="material-symbols-outlined">account_balance</span>
+            <span class="font-['Inter'] text-[9px] font-medium uppercase tracking-widest mt-1">Portfolio</span>
+        </a>
+    </div>
+    <div class="flex flex-col w-full mt-auto">
+        <a class="flex flex-col items-center justify-center text-[#c2c6d8] w-full py-4 opacity-70 hover:bg-[#2a2a2a] hover:opacity-100 transition-all duration-200 ease-in-out" href="#">
+            <span class="material-symbols-outlined">settings</span>
+            <span class="font-['Inter'] text-[9px] font-medium uppercase tracking-widest mt-1">Settings</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Main Content Area -->
+<main class="ml-[88px] mb-8 p-6 min-h-[calc(100vh-61px)]">
+    <!-- LRS Signal Banner -->
+    <div class="mb-6 p-4 bg-surface-container-highest border-l-4 border-tertiary flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <span class="material-symbols-outlined text-tertiary text-3xl">analytics</span>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="font-headline text-2xl font-bold text-tertiary">LRS: <span id="lrs-score">--</span></span>
+                    <span class="text-xs font-mono text-tertiary px-2 py-0.5 bg-tertiary/10 rounded" id="lrs-band">NORMAL</span>
+                </div>
+                <p class="text-[10px] text-outline uppercase tracking-widest mt-1">Liquidation Risk Score — Real-time market stress indicator</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="text-right">
+                <div class="text-[10px] text-outline uppercase">Funding Rate</div>
+                <div class="font-mono text-sm text-primary" id="funding-rate">--</div>
+            </div>
+            <div class="text-right">
+                <div class="text-[10px] text-outline uppercase">Open Interest</div>
+                <div class="font-mono text-sm" id="open-interest">$--</div>
+            </div>
+            <div class="text-right">
+                <div class="text-[10px] text-outline uppercase">24h Volume</div>
+                <div class="font-mono text-sm" id="volume-24h">$--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="grid grid-cols-12 gap-4">
+        <!-- Orderbook Heatmap Placeholder -->
+        <section class="col-span-12 lg:col-span-7 bg-surface-container p-4 min-h-[400px]">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-headline text-xs font-bold tracking-widest text-outline uppercase">Orderbook Depth</h3>
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 bg-tertiary/20 border border-tertiary"></span>
+                    <span class="text-[9px] text-outline uppercase">Bids</span>
+                    <span class="w-3 h-3 bg-error/20 border border-error ml-2"></span>
+                    <span class="text-[9px] text-outline uppercase">Asks</span>
+                </div>
+            </div>
+            <div class="h-[320px] bg-surface-container-lowest flex items-center justify-center border border-outline-variant/10">
+                <div class="text-center">
+                    <span class="material-symbols-outlined text-outline text-4xl mb-2">stacked_line_chart</span>
+                    <p class="text-[10px] text-outline uppercase tracking-widest">Connecting to Pacifica WebSocket...</p>
+                    <p class="text-[9px] text-outline mt-1" id="ws-status">Initializing</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signal Panel -->
+        <section class="col-span-12 lg:col-span-5 bg-surface-container p-4">
+            <h3 class="font-headline text-xs font-bold tracking-widest text-outline uppercase mb-4">Active Signals</h3>
+            <div class="space-y-3" id="signal-list">
+                <!-- Signal cards will be injected here -->
+                <div class="p-4 bg-surface-container-lowest border-l-2 border-outline/30">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-outline text-sm">info</span>
+                        <span class="text-[10px] text-outline uppercase">No active signals</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trade Feed -->
+        <section class="col-span-12 lg:col-span-6 bg-surface-container p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-headline text-xs font-bold tracking-widest text-outline uppercase">Live Trade Feed</h3>
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-tertiary text-sm">filter_alt</span>
+                    <label class="flex items-center gap-1 text-[9px] text-outline uppercase">
+                        <input type="checkbox" id="whale-filter" class="accent-primary"/>
+                        Whales Only
+                    </label>
+                </div>
+            </div>
+            <div class="h-[280px] overflow-y-auto bg-surface-container-lowest p-2 space-y-1" id="trade-feed">
+                <!-- Trades will be injected here -->
+                <div class="p-4 text-center">
+                    <span class="material-symbols-outlined text-outline text-2xl">receipt_long</span>
+                    <p class="text-[10px] text-outline uppercase mt-2">Waiting for trades...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Execution Panel -->
+        <section class="col-span-12 lg:col-span-6 bg-surface-container-highest p-6 border-t-2 border-primary">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-headline text-lg font-black tracking-tight uppercase">Order Execution</h2>
+                <div class="bg-surface-container-lowest px-3 py-1 text-[10px] font-mono text-tertiary flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-tertiary rounded-full animate-pulse"></span>
+                    READY
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block font-['Inter'] text-[9px] font-medium uppercase tracking-widest text-outline mb-2">Symbol</label>
+                <select id="exec-symbol" class="w-full bg-surface-container-lowest border-none text-on-surface font-headline font-bold text-lg p-3 focus:ring-1 focus:ring-primary">
+                    <option value="BTC-PERP">BTC-PERP</option>
+                    <option value="SOL-PERP">SOL-PERP</option>
+                    <option value="ETH-PERP">ETH-PERP</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <button id="btn-buy" class="gradient-primary text-on-primary font-headline font-black py-4 text-center tracking-tighter text-sm uppercase glow-primary hover:opacity-90 transition-opacity">
+                    BUY / LONG
+                </button>
+                <button id="btn-sell" class="bg-surface-container-highest text-outline font-headline font-black py-4 text-center tracking-tighter text-sm uppercase border border-outline-variant/20 hover:text-error hover:border-error/50 transition-colors">
+                    SELL / SHORT
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="block text-[9px] font-medium uppercase text-outline mb-1">Size</label>
+                    <input id="exec-size" class="w-full bg-surface-container-lowest border-none font-mono text-on-surface p-3 focus:ring-1 focus:ring-primary" placeholder="0.00" type="number" step="0.01"/>
+                </div>
+                <div>
+                    <label class="block text-[9px] font-medium uppercase text-outline mb-1">Limit Price (Optional)</label>
+                    <input id="exec-price" class="w-full bg-surface-container-lowest border-none font-mono text-on-surface p-3 focus:ring-1 focus:ring-primary" placeholder="Market" type="number" step="0.01"/>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-3 border-t border-outline-variant/10">
+                <span class="text-[9px] text-outline uppercase">Builder Code</span>
+                <span class="font-mono text-[10px] text-primary" id="builder-code-display">ARGUS_BUILDER_001</span>
+            </div>
+
+            <button id="btn-execute" class="w-full bg-surface-container-highest hover:bg-surface-bright py-4 text-sm font-black uppercase tracking-widest transition-colors mt-4 border border-outline-variant/20">
+                CONFIRM & EXECUTE
+            </button>
+
+            <div id="execution-status" class="mt-3 text-center text-[9px] font-mono text-outline"></div>
+        </section>
+
+        <!-- Market Stats -->
+        <section class="col-span-12 lg:col-span-4 bg-surface-container-low p-4">
+            <h3 class="font-headline text-[9px] font-bold tracking-widest uppercase text-outline mb-4 border-b border-outline-variant/15 pb-2">Market Overview</h3>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] text-outline uppercase">Mid Price</span>
+                    <span class="font-mono text-sm text-primary" id="mid-price">$--</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] text-outline uppercase">Bid Depth (2%)</span>
+                    <span class="font-mono text-sm" id="bid-depth">--</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] text-outline uppercase">Ask Depth (2%)</span>
+                    <span class="font-mono text-sm" id="ask-depth">--</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] text-outline uppercase">Imbalance</span>
+                    <span class="font-mono text-sm" id="imbalance">--</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Alerts -->
+        <section class="col-span-12 lg:col-span-4 bg-surface-container-low p-4">
+            <h3 class="font-headline text-[9px] font-bold tracking-widest uppercase text-outline mb-4 border-b border-outline-variant/15 pb-2">Alert History</h3>
+            <div class="space-y-2 max-h-[200px] overflow-y-auto" id="alert-history">
+                <!-- Alerts will be injected here -->
+                <div class="text-[9px] text-outline text-center py-4">No alerts yet</div>
+            </div>
+        </section>
+
+        <!-- Connection Info -->
+        <section class="col-span-12 lg:col-span-4 bg-surface-container-low p-4">
+            <h3 class="font-headline text-[9px] font-bold tracking-widest uppercase text-outline mb-4 border-b border-outline-variant/15 pb-2">System Status</h3>
+            <div class="space-y-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-tertiary rounded-full"></span>
+                    <span class="text-[10px] text-outline uppercase">WebSocket: <span id="ws-connected" class="text-tertiary">Connected</span></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-tertiary rounded-full"></span>
+                    <span class="text-[10px] text-outline uppercase">REST API: <span id="rest-status" class="text-tertiary">Online</span></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-tertiary rounded-full"></span>
+                    <span class="text-[10px] text-outline uppercase">Symbol: <span id="active-symbol" class="text-primary">BTC-PERP</span></span>
+                </div>
+                <div class="text-[9px] text-outline mt-4 pt-3 border-t border-outline-variant/10">
+                    <p>Argus Terminal v0.1.0</p>
+                    <p class="mt-1">Built for Pacifica Hackathon 2026</p>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script>
+    // Clock update
+    function updateClock() {
+        const now = new Date();
+        const time = now.toISOString().split('T')[1].split('.')[0] + ' UTC';
+        document.getElementById('clock').innerText = time;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // WebSocket connection for real-time data
+    const WS_URL = (window.location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + window.location.host + '/ws/client';
+    let ws = null;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECTS = 5;
+
+    function connectWebSocket() {
+        const statusEl = document.getElementById('ws-status');
+        
+        try {
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                reconnectAttempts = 0;
+                document.getElementById('connection-status').innerText = 'CONNECTED';
+                document.getElementById('connection-status').className = 'text-tertiary';
+                statusEl.innerText = 'Connected to ' + WS_URL;
+                console.log('[Terminal] WebSocket connected');
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (e) {
+                    console.error('[Terminal] Failed to parse message:', e);
+                }
+            };
+
+            ws.onclose = () => {
+                document.getElementById('connection-status').innerText = 'DISCONNECTED';
+                document.getElementById('connection-status').className = 'text-error';
+                statusEl.innerText = 'Disconnected';
+                
+                if (reconnectAttempts < MAX_RECONNECTS) {
+                    reconnectAttempts++;
+                    statusEl.innerText = `Reconnecting (${reconnectAttempts}/${MAX_RECONNECTS})...`;
+                    setTimeout(connectWebSocket, 2000 * reconnectAttempts);
+                } else {
+                    statusEl.innerText = 'Max reconnects reached. Refresh to retry.';
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('[Terminal] WebSocket error:', error);
+                statusEl.innerText = 'Connection error';
+            };
+        } catch (e) {
+            console.error('[Terminal] Failed to create WebSocket:', e);
+            statusEl.innerText = 'Failed to initialize';
+        }
+    }
+
+    function handleWebSocketMessage(data) {
+        const { type, tick, signal, trade, alert } = data;
+
+        if (type === 'market_tick' && tick) {
+            updateMarketData(tick, signal);
+        }
+
+        if (type === 'trade' && trade) {
+            addTradeToFeed(trade);
+        }
+
+        if (type === 'alert' && alert) {
+            addAlert(alert);
+        }
+
+        if (type === 'orderbook' && data.bids && data.asks) {
+            updateOrderbook(data.bids, data.asks);
+        }
+    }
+
+    function updateMarketData(tick, signal) {
+        // Update LRS
+        if (signal) {
+            document.getElementById('lrs-score').innerText = signal.score.toFixed(0);
+            const bandEl = document.getElementById('lrs-band');
+            bandEl.innerText = signal.band;
+            
+            // Color coding
+            bandEl.className = 'text-xs font-mono px-2 py-0.5 rounded';
+            if (signal.band === 'RED') bandEl.classList.add('bg-error', 'text-on-error');
+            else if (signal.band === 'ORANGE') bandEl.classList.add('bg-[#f57c00]', 'text-white');
+            else if (signal.band === 'YELLOW') bandEl.classList.add('bg-yellow-500', 'text-black');
+            else bandEl.classList.add('bg-tertiary', 'text-on-tertiary-fixed');
+        }
+
+        // Update funding rate
+        if (tick.fundingRate !== undefined) {
+            document.getElementById('funding-rate').innerText = (tick.fundingRate * 100).toFixed(4) + '%';
+        }
+
+        // Update open interest
+        if (tick.openInterest !== undefined) {
+            document.getElementById('open-interest').innerText = '$' + (tick.openInterest / 1000000).toFixed(2) + 'M';
+        }
+
+        // Update market stats
+        if (tick.bidDepth2pct !== undefined) {
+            document.getElementById('bid-depth').innerText = tick.bidDepth2pct.toFixed(2);
+        }
+        if (tick.askDepth2pct !== undefined) {
+            document.getElementById('ask-depth').innerText = tick.askDepth2pct.toFixed(2);
+        }
+    }
+
+    function updateOrderbook(bids, asks) {
+        // Calculate mid price
+        if (bids.length > 0 && asks.length > 0) {
+            const midPrice = (parseFloat(bids[0].price) + parseFloat(asks[0].price)) / 2;
+            document.getElementById('mid-price').innerText = '$' + midPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Calculate imbalance
+        const totalBid = bids.reduce((sum, b) => sum + b.size, 0);
+        const totalAsk = asks.reduce((sum, a) => sum + a.size, 0);
+        const imbalance = totalBid - totalAsk;
+        const imbalanceEl = document.getElementById('imbalance');
+        imbalanceEl.innerText = (imbalance > 0 ? '+' : '') + imbalance.toFixed(2);
+        imbalanceEl.className = 'font-mono text-sm ' + (imbalance > 0 ? 'text-tertiary' : imbalance < 0 ? 'text-error' : 'text-outline');
+    }
+
+    function addTradeToFeed(trade) {
+        const feed = document.getElementById('trade-feed');
+        const isWhale = trade.isWhale || trade.value > 50000;
+        
+        const tradeEl = document.createElement('div');
+        tradeEl.className = 'flex justify-between items-center p-2 bg-surface-container-lowest border-l-2 ' + 
+            (isWhale ? 'border-[#e07a1f] bg-[#e07a1f]/10' : (trade.side === 'BUY' ? 'border-tertiary' : 'border-error'));
+        
+        const time = new Date(trade.timestamp).toLocaleTimeString();
+        tradeEl.innerHTML = `
+            <div class="flex items-center gap-2">
+                ${isWhale ? '<span class="text-[#e07a1f]">🐋</span>' : ''}
+                <span class="text-[10px] font-bold ' + (trade.side === 'BUY' ? 'text-tertiary' : 'text-error') + '">' + trade.side + '</span>
+                <span class="text-[9px] font-mono">$' + trade.price.toLocaleString() + '</span>
+            </div>
+            <div class="text-right">
+                <div class="text-[9px] font-mono">' + trade.amount.toFixed(4) + '</div>
+                <div class="text-[8px] text-outline">' + time + '</div>
+            </div>
+        `;
+        
+        feed.insertBefore(tradeEl, feed.firstChild);
+        
+        // Keep only last 50 trades
+        while (feed.children.length > 50) {
+            feed.removeChild(feed.lastChild);
+        }
+    }
+
+    function addAlert(alert) {
+        const history = document.getElementById('alert-history');
+        
+        // Remove "no alerts" message if present
+        if (history.children.length === 1 && history.children[0].innerText === 'No alerts yet') {
+            history.innerHTML = '';
+        }
+        
+        const alertEl = document.createElement('div');
+        alertEl.className = 'p-2 bg-surface-container-lowest border-l-2 border-primary';
+        alertEl.innerHTML = `
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-sm">notifications_active</span>
+                <span class="text-[9px] text-on-surface">' + alert.type + '</span>
+            </div>
+            <div class="text-[8px] text-outline mt-1">' + alert.message + '</div>
+            <div class="text-[7px] text-outline mt-1">' + new Date(alert.timestamp).toLocaleTimeString() + '</div>
+        `;
+        
+        history.insertBefore(alertEl, history.firstChild);
+        
+        // Keep only last 20 alerts
+        while (history.children.length > 20) {
+            history.removeChild(history.lastChild);
+        }
+    }
+
+    // Execution handlers
+    document.getElementById('btn-buy').addEventListener('click', () => {
+        document.getElementById('btn-buy').className = 'gradient-primary text-on-primary font-headline font-black py-4 text-center tracking-tighter text-sm uppercase glow-primary';
+        document.getElementById('btn-sell').className = 'bg-surface-container-highest text-outline font-headline font-black py-4 text-center tracking-tighter text-sm uppercase border border-outline-variant/20';
+        document.getElementById('btn-execute').dataset.side = 'BUY';
+    });
+
+    document.getElementById('btn-sell').addEventListener('click', () => {
+        document.getElementById('btn-sell').className = 'bg-error/20 text-error font-headline font-black py-4 text-center tracking-tighter text-sm uppercase border border-error/50';
+        document.getElementById('btn-buy').className = 'bg-surface-container-highest text-outline font-headline font-black py-4 text-center tracking-tighter text-sm uppercase border border-outline-variant/20';
+        document.getElementById('btn-execute').dataset.side = 'SELL';
+    });
+
+    document.getElementById('btn-execute').addEventListener('click', async () => {
+        const symbol = document.getElementById('exec-symbol').value;
+        const side = document.getElementById('btn-execute').dataset.side;
+        const size = parseFloat(document.getElementById('exec-size').value);
+        const price = document.getElementById('exec-price').value;
+
+        if (!side) {
+            alert('Please select BUY or SELL first');
+            return;
+        }
+
+        if (!size || size <= 0) {
+            alert('Please enter a valid size');
+            return;
+        }
+
+        const statusEl = document.getElementById('execution-status');
+        statusEl.innerText = 'Submitting order...';
+        statusEl.className = 'mt-3 text-center text-[9px] font-mono text-primary';
+
+        try {
+            const response = await fetch('/api/execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    symbol,
+                    side,
+                    type: price ? 'LIMIT' : 'MARKET',
+                    quantity: size.toString(),
+                    price: price || undefined,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                statusEl.innerText = '✓ Order executed: ' + result.orderId;
+                statusEl.className = 'mt-3 text-center text-[9px] font-mono text-tertiary';
+            } else {
+                statusEl.innerText = '✗ Failed: ' + result.error;
+                statusEl.className = 'mt-3 text-center text-[9px] font-mono text-error';
+            }
+        } catch (error) {
+            statusEl.innerText = '✗ Error: ' + error.message;
+            statusEl.className = 'mt-3 text-center text-[9px] font-mono text-error';
+        }
+    });
+
+    // Initialize WebSocket connection
+    connectWebSocket();
+
+    // Simulate initial latency display
+    setInterval(() => {
+        const latency = Math.floor(Math.random() * 30) + 10;
+        document.getElementById('latency').innerText = latency + ' MS';
+    }, 2000);
+</script>
+</body>
+</html>

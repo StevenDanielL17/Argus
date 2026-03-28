@@ -47,6 +47,22 @@ Thumbs.db
 # Documentation (local notes, not for repo)
 docs/
 
+# Tests
+tests/
+
+# External terminal projects
+stitch_global_news_terminal/
+
+# Boot scripts (local convenience)
+boot.cmd
+boot.sh
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Test reports (local generated reports)
+**/TEST_REPORT.md
+
 # Keep root README only
 /*.md
 !/README.md

@@ -28,8 +28,9 @@ async function fetchFundingRate(symbol: string) {
     const data = await res.json();
     latestFundingRate = parseFloat(data.rate) || 0;
     console.log(`[PacificaFeeds] Fetched funding rate for ${symbol}: ${latestFundingRate}`);
-  } catch (e: any) {
-    console.warn("[PacificaFeeds] Failed to fetch funding rate:", e?.message ?? e);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Unknown error";
+    console.warn("[PacificaFeeds] Failed to fetch funding rate:", message);
   }
 }
 
@@ -44,7 +45,7 @@ export function startPacificaFeeds(url: string, options: PacificaFeedOptions) {
 
   let lastMessageTime = Date.now();
   let lastBroadcastTime = 0;
-  
+
   manager.onMessage((data) => {
     lastMessageTime = Date.now();
     try {
@@ -69,13 +70,13 @@ export function startPacificaFeeds(url: string, options: PacificaFeedOptions) {
   });
 
   const staleCheckInterval = setInterval(() => {
-    if (Date.now() - lastMessageTime > 10_000) {
-      console.warn("[PacificaFeeds] Stale feed detected (>10s without message). Resyncing...");
+    if (Date.now() - lastMessageTime > 60_000) {
+      console.warn("[PacificaFeeds] Stale feed detected (>60s without message). Resyncing...");
       manager.disconnect();
       manager.connect();
       lastMessageTime = Date.now();
     }
-  }, 5000);
+  }, 15000);
 
   manager.connect();
 

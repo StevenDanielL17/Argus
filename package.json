@@ -2,15 +2,22 @@
   "name": "argus",
   "private": true,
   "version": "0.1.0",
+  "type": "module",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
-  "packageManager": "pnpm@10.0.0",
+  "packageManager": "npm@10.0.0",
   "scripts": {
+    "boot": "concurrently --kill-others --names \"BACKEND,FRONTEND\" --prefix-colors \"cyan,yellow\" \"npm run dev --workspace=@argus/server\" \"npm run dev --workspace=@argus/web\"",
     "dev": "npm run dev --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "start:server": "npm run start --workspace=@argus/server",
+    "start:web": "npm run start --workspace=@argus/web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }

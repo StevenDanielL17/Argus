@@ -15,6 +15,7 @@ function required(key: string): string {
 export const config = {
   env,
   port: Number(process.env.PORT ?? 8080),
+  corsOrigin: process.env.CORS_ORIGIN ?? (env === "development" ? true : ["https://argus.pacifica.tools"]),
   pacificaApiKey: process.env.PACIFICA_API_KEY ?? "",
   pacificaPrivateKey: process.env.PACIFICA_PRIVATE_KEY ?? "",
   builderCode: process.env.BUILDER_CODE ?? (env === "development" ? "ARGUS_BUILDER_001" : required("BUILDER_CODE")),
@@ -32,4 +33,18 @@ export const config = {
   fundingAnomalyThreshold: Number(process.env.FUNDING_ANOMALY_THRESHOLD ?? 0.0005),
   imbalanceRatioThreshold: Number(process.env.IMBALANCE_RATIO_THRESHOLD ?? 3),
   whaleCooldownMs: Number(process.env.WHALE_COOLDOWN_MS ?? 15000),
+
+  // Execution layer
+  executionMode: (process.env.EXECUTION_MODE ?? "testnet") as "live" | "testnet",
+  defaultSlippageBps: Number(process.env.DEFAULT_SLIPPAGE_BPS ?? 50),
+  defaultTpPct: Number(process.env.DEFAULT_TP_PCT ?? 5),
+  defaultSlPct: Number(process.env.DEFAULT_SL_PCT ?? 3),
+  maxRetries: Number(process.env.MAX_RETRIES ?? 3),
+  retryBaseDelayMs: Number(process.env.RETRY_BASE_DELAY_MS ?? 500),
+  requestTimeoutMs: Number(process.env.REQUEST_TIMEOUT_MS ?? 10000),
+  requestWindowMs: Number(process.env.REQUEST_WINDOW_MS ?? 5000),
+
+  // Rate limiting
+  rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS ?? 60000),
+  rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS ?? 10),
 };

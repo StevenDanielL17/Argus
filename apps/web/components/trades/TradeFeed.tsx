@@ -14,9 +14,9 @@ export function TradeFeed() {
         {trades.length === 0 ? (
           <p style={{ padding: 16, color: "#666" }}>No trades yet...</p>
         ) : (
-          trades.map((trade, i) => (
+          trades.map((trade) => (
             <div
-              key={i}
+              key={`${trade.timestamp}-${trade.side}-${trade.price}`}
               style={{
                 padding: "8px 12px",
                 borderBottom: "1px solid #1a2332",

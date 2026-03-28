@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "lint": "echo \"No lint configured for @argus/web yet\""
+    "lint": "eslint app components hooks stores lib --ext .ts,.tsx"
   },
   "dependencies": {
     "@types/d3": "^7.4.3",
@@ -22,6 +22,13 @@
     "@types/node": "^22.13.10",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "@typescript-eslint/eslint-plugin": "^8.25.0",
+    "@typescript-eslint/parser": "^8.25.0",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^9.22.0",
+    "eslint-config-next": "^15.2.0",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
     "typescript": "^5.8.2"
   }
 }

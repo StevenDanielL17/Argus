@@ -1,8 +1,12 @@
 import type { ReactNode } from "react";
+import "./globals.css";
 
 export const metadata = {
   title: "Argus",
-  description: "Argus Market Intelligence Terminal"
+  description: "Argus Market Intelligence Terminal",
+  icons: {
+    icon: "/favicon.svg",
+  }
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -10,6 +14,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+      </head>
       <body style={{ margin: 0, fontFamily: "Segoe UI, sans-serif", background: "#0f1218", color: "#d7e2f0" }}>
         {isDemoMode && (
           <div style={{

@@ -1,8 +1,8 @@
-# Argus — Market Intelligence Terminal
+# Argus — Signal-Execution Terminal
 ### *"Argus sees what no trader can — and trades on it."*
 
-> **Pacifica Perpetuals Hackathon · March 16 – April 16, 2026**  
-> Track: Analytics & Data (Primary) · Trading Applications & Bots (Secondary)  
+> **Pacifica Perpetuals Hackathon · March 16 – April 16, 2026**
+> Track: Analytics & Data (Primary) · Trading Applications & Bots (Secondary)
 > Builder: Solo · Status: Submitted
 
 ---
@@ -35,11 +35,43 @@ Pacifica has achieved sub-10ms execution, on-chain settlement, and #1 perp DEX v
 
 **Slow execution on signals.** Even traders who identify a signal manually must navigate from their analytics tool to the exchange UI, fill in order parameters, and execute — a process that takes 10–30 seconds. In a volatile market, that is the entire move.
 
-**No intelligence layer between data and action.** Institutional traders use terminals like Bloomberg to compress data → signal → execution into a single workflow. Retail traders on Pacifica have no equivalent.
+**No intelligence layer between data and action.** Institutional traders use terminals to compress data → signal → execution into a single workflow. Retail traders on Pacifica have no equivalent.
 
 ### The gap in one sentence
 
-> Pacifica has Bloomberg-grade infrastructure. Its traders have no Bloomberg.
+> Pacifica has institutional-grade infrastructure. Its traders have no **signal-execution loop**.
+
+---
+
+## 0. What Argus Actually Is
+
+> **"Bloomberg for Pacifica"** is a positioning statement for judges and non-technical stakeholders. It communicates ambition. It is **not** the product identity.
+
+**Bloomberg shows you data.** You still have to decide, switch tools, and execute manually.
+
+**Argus collapses three separate workflows — monitor, interpret, execute — into one unbroken loop.** That loop does not exist anywhere on Pacifica today.
+
+### The Real Innovation
+
+| Category | Bloomberg | Trading Bots | **Argus** |
+|----------|-----------|--------------|-----------|
+| Shows live data | ✅ | ❌ | ✅ |
+| Computes signals | ❌ | ✅ (black box) | ✅ (transparent) |
+| One-click execution from signal | ❌ | ❌ (fully automated) | ✅ |
+| Builder fee revenue in UI | ❌ | ❌ | ✅ |
+| User stays in control | ✅ | ❌ | ✅ |
+
+**Argus is neither a dashboard nor a bot.** It is the **bridge between them** — the first signal-execution loop built natively on Pacifica.
+
+### Original Contributions
+
+1. **The Liquidation Risk Score (LRS)** — A composite signal that doesn't exist on any exchange dashboard, builder, or tool anywhere on Pacifica. **You invented the formula.**
+
+2. **Signal-to-execution in one click** — Trading directly from inside the analytics view. Bloomberg cannot trade. Argus trades.
+
+3. **Live builder fee counter** — A DeFi-native monetization mechanic embedded in the UI itself. No Bloomberg equivalent exists.
+
+> The LRS alone is novel enough to win. The signal-execution loop is what makes it unforgettable.
 
 ---
 

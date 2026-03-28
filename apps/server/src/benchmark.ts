@@ -3,9 +3,9 @@ import { computeLiquidationRiskScore } from "./signals/liquidationScore.js";
 console.log("Starting Benchmark...");
 
 // Generate Mock Orderbook with N levels
-function generateOrderbook(levels: number) {
-  const bids = [];
-  const asks = [];
+function generateOrderbook(levels: number): OrderbookData {
+  const bids: OrderbookLevel[] = [];
+  const asks: OrderbookLevel[] = [];
   let currentBid = 100000;
   let currentAsk = 100001;
   const step = 0.5;
@@ -13,7 +13,7 @@ function generateOrderbook(levels: number) {
   for (let i = 0; i < levels; i++) {
     bids.push({ p: currentBid.toString(), a: (Math.random() * 10).toFixed(4), n: 1 });
     currentBid -= step;
-    
+
     asks.push({ p: currentAsk.toString(), a: (Math.random() * 10).toFixed(4), n: 1 });
     currentAsk += step;
   }
@@ -21,7 +21,19 @@ function generateOrderbook(levels: number) {
   return { l: [bids, asks], s: "BTC-PERP", t: Date.now() };
 }
 
-function processOrderbook(data: any) {
+interface OrderbookLevel {
+  p: string; // price
+  a: string; // amount
+  n: number; // count
+}
+
+interface OrderbookData {
+  l: [OrderbookLevel[], OrderbookLevel[]]; // [bids, asks]
+  s: string; // symbol
+  t: number; // timestamp
+}
+
+function processOrderbook(data: OrderbookData) {
   const bids = data.l[0];
   const asks = data.l[1];
 
